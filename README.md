@@ -14,6 +14,12 @@
   <a href="https://gumroad.com">Gumroad</a> is an e-commerce platform that enables creators to sell products directly to consumers. This repository contains the source code for the Gumroad web application.
 </p>
 
+<p align="center">
+  <a href="https://github.com/antiwork/gumroad-cli">
+    <img src="https://img.shields.io/badge/CLI-gumroad--cli-FF90E8?style=for-the-badge" alt="Gumroad CLI">
+  </a>
+</p>
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
@@ -21,6 +27,9 @@
   - [Installation](#installation)
   - [Configuration](#configuration)
   - [Running Locally](#running-locally)
+- [Testing](#testing)
+  - [Dependencies](#dependencies)
+  - [Integration tests](#integration-tests)
 - [Development](#development)
   - [Logging in](#logging-in)
   - [Resetting Elasticsearch indices](#resetting-elasticsearch-indices)
@@ -204,6 +213,41 @@ You can now access the application at `http://localhost:3000`. Seller subdomains
 
 - **Apple Pay** — Stripe requires HTTPS for Apple Pay domain registration. Workaround: expose the app over HTTPS with [ngrok](https://ngrok.com/) (`ngrok http 3000`) and register the resulting hostname in the [Stripe Apple Pay dashboard](https://dashboard.stripe.com/settings/payments/apple_pay).
 - **Cross-subdomain cookies** (affiliate attribution, `_gumroad_guid`, multi-account "switch seller", session) — browsers reject `Domain=localhost`, so cookies set on `localhost:3000` aren't sent to `seller.localhost:3000`. Test these flows on a single host, or front the app with a local HTTPS reverse proxy on a registrable hostname (e.g. `gumroad.test` via mkcert) where `Domain=.gumroad.test` works.
+
+## Testing
+
+Run the full test suite:
+
+```shell
+bin/rspec
+```
+
+Run a single file or specific test:
+
+```shell
+bin/rspec spec/requests/dashboard_spec.rb
+bin/rspec spec/requests/dashboard_spec.rb:75
+```
+
+### Dependencies
+
+Before running tests:
+
+```shell
+make local                          # start Docker services (db, Redis, etc.)
+RAILS_ENV=test bin/rails db:setup   # set up the test database
+RAILS_ENV=test bin/rails js:export  # generate JS constants for the test environment
+```
+
+### Integration tests
+
+Integration specs use Capybara with Selenium (Chrome). On macOS, install XQuartz:
+
+```shell
+brew install xquartz
+```
+
+See [docs/testing.md](docs/testing.md) for details on preventing flaky specs, VCR cassettes, debugging widgets, and purchase testing with Stripe/PayPal.
 
 ## Development
 
